@@ -20,3 +20,6 @@ Website index is at `<build_root>/docs/build/index.html`
 
 Github pages uses branch website as the source. To update it
 run `update_website_branch.sh`.
+
+Commit messages of website branch contains the full has to the
+commit which it is based on.
