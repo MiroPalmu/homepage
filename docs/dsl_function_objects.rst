@@ -6,6 +6,10 @@
 DSL function objects
 --------------------
 
+In this blog I'm going to describe metaprogramming technique that came up when
+I was working on my WIP library. I have not seen it before so I coined term
+DSL (Domain Spesific Language) function object.
+
 DSL function object is function object which is created using some sort of DSL.
 UDLs can return DSL function object which has variadic tempalted arguments which are
 constrainted using a concept which models which combination of arguments is accepted
