@@ -11,19 +11,24 @@ I was working on my WIP library. I have not seen it before so I coined term
 DSL (Domain Spesific Language) function object.
 
 DSL function object is function object which is created using some sort of DSL.
-UDLs can return DSL function object which has variadic tempalted arguments which are
+UDLs (User-Defined Literal) can return DSL function object which has variadic tempalted arguments which are
 constrainted using a concept which models which combination of arguments is accepted
 based on the DSL in the UDL string.
 
-For a example DSL we define simple language which just controls which argument types are
+Due to usage of template constraints DSL function objects require c++20. I have a feeling that
+all this could be emulated using some dark sorcery of earlier standards but I have not thought
+of it enough.
+
+For a example we define simple language which just controls which argument types are
 accepted. Rules for this langauge:
-    - only allowed characters are 'A', 'B' and 'C'.
-    - parameter types to the DSL function object can only be of A, B or C (defined in code)
+    - only allowed characters 'A', 'B' and 'C'.
+    - parameter to the DSL function object can only be of type A, B or C (defined in code)
     - parameters have to be given in order defined by the given characters
 
-Then the DSL funciton object will print values inside these parameters and ``std::type_info::name()``.
-UDL for this DSL function object is ""_p. Exapmle usage ``"ABBCCC"_p(A{1}, B{2}, B{3}, C{4}, C{5}, C{6});``
-which would give following output on gcc 10.1:
+Then the DSL function object will print values inside these parameters
+with name provided by ``std::type_info::name()``.
+UDL for this DSL function object is ``""_p``. Exapmle usage ``"ABBCCC"_p(A{1}, B{2}, B{3}, C{4}, C{5}, C{6});``
+which would give following output on gcc 10.1 (interestingly gcc adds '1' to the names):
 
 .. code-block:: console
 
@@ -37,12 +42,8 @@ which would give following output on gcc 10.1:
 One could imagine doing anything you can with these arguments and the logic why some combination
 of argument could be as complex as one wants.
 
-Due to usage of template constraints DSL function objects require c++20. I have a feeling that
-all this could be emulated using some dark sorcery of earlier standards but I have not thought
-of it enough.
-
 Below is the code implementing DSL function object described above. It compiles with gcc 10.1
-and clang 12.0.0 in c++20 mode or newer (except clang 12.0.1) in c++20 mode. For some reason msvc does
+and clang 12.0.0 or newer (except clang 12.0.1) in c++20 mode. For some reason msvc does
 not compile on any version. Here is the implementation in `godbold`_.
 
 .. link to godbold
