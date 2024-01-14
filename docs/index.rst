@@ -33,3 +33,9 @@ Projects
 ..    :caption: Contents:
 ..
 ..    developing_guidelines
+
+Blog
+----
+
+.. postlist::
+   :tags: blog
