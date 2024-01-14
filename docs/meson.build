@@ -27,6 +27,13 @@ sphinx_config_file = configure_file(
     install: false
 )
 
+# Make sure ablog is available
+py.find_installation(
+    'python3',
+    modules: ['ablog'],
+    required: true,
+)
+
 sphinx_html_target = custom_target(
     'sphinx_html_target',
     output : 'build',
