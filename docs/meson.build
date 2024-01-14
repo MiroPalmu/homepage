@@ -10,21 +10,13 @@ sphinx_configuration_data = configuration_data({
 # Check if different themes is installed using python module of meson
 py = import('python')
 
-furo_theme = py.find_installation(
-    'python3',
-    modules : ['furo'],
-    required : false
-)
-
 rtd_theme = py.find_installation(
     'python3',
     modules : ['sphinx_rtd_theme'],
     required : false
 )
 
-if furo_theme.found()
-    sphinx_configuration_data.set('THEME', 'furo')
-elif rtd_theme.found()
+if rtd_theme.found()
     sphinx_configuration_data.set('THEME', 'sphinx_rtd_theme')
 endif
 
