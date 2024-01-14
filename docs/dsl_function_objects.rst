@@ -1,9 +1,9 @@
 :blogpost: true
 :date: 2024-01-14
-:tags: blog, c++, c++20, DSL, metaprogramming
+:tags: blog, C++, C++20, DSL, metaprogramming
 :author: Miro Palmu
 
-DSL function objects (c++)
+DSL function objects (C++)
 --------------------------
 
 In this blog I'm going to describe metaprogramming technique that came up when
@@ -15,7 +15,7 @@ UDLs (User-Defined Literal) can return DSL function object which has variadic te
 constrainted using a concept which models which combination of arguments is accepted
 based on the DSL in the UDL string.
 
-Due to usage of template constraints DSL function objects require c++20. I have a feeling that
+Due to usage of template constraints DSL function objects require C++20. I have a feeling that
 all this could be emulated using some dark sorcery of earlier standards but I have not thought
 of it enough.
 
@@ -43,7 +43,7 @@ One could imagine doing anything you can with these arguments and the logic why 
 of argument could be as complex as one wants.
 
 Below is the code implementing DSL function object described above. It compiles with gcc 10.1
-and clang 12.0.0 or newer (except clang 12.0.1) in c++20 mode. For some reason msvc does
+and clang 12.0.0 or newer (except clang 12.0.1) in C++20 mode. For some reason msvc does
 not compile on any version. Here is the implementation in `godbold`_.
 
 .. link to godbold
