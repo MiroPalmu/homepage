@@ -17,8 +17,8 @@ Projects
 - Compile time tensor index contraction library
     - WIP
     - `<https://github.com/MiroPalmu/idg>`_
-    - Write tensor contractions using Latex notation which will be check for correctness at compile time
-    - Tensor contraction optimization algorithms will be run during compile time
+    - Write tensor contractions using Latex notation which will be check for correctness at compile time.
+    - Tensor contraction optimization algorithms will be run during compile time.
         - ∴ Writing index contractions in Latex notation has **zero-overhead**!
 - Conway's Game of Life (C++ practice project)
     - `<https://github.com/MiroPalmu/gol>`_
