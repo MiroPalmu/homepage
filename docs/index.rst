@@ -22,12 +22,17 @@ Projects
         - ∴ Writing index contractions in Latex notation has **zero-overhead**!
 - Conway's Game of Life (C++ practice project)
     - `<https://github.com/MiroPalmu/gol>`_
+- This website
+    - Automatic Sphinx_ debloyment to `Github pages`_.
+    - `<https://github.com/MiroPalmu/homepage>`_
 
 .. _Meson: https://mesonbuild.com/
 .. _UT: https://github.com/boost-ext/ut
 .. _Doxygen: https://www.doxygen.nl/
 .. _Breathe: https://breathe.readthedocs.io/en/latest/
 .. _Sphinx: https://www.sphinx-doc.org/en/master/
+.. _`Github pages`: https://pages.github.com/ 
+
 .. .. toctree::
 ..    :maxdepth: 2
 ..    :caption: Contents:
