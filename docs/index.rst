@@ -20,6 +20,12 @@ Projects
     - Write tensor contractions using Latex notation which will be check for correctness at compile time.
     - Tensor contraction optimization algorithms will be run during compile time.
         - ∴ Writing index contractions in Latex notation has **zero-overhead**!
+- Kuutti
+    - Custom HPC cluster provision tool for bare metal written as an `Ansible`_ role.
+    - Utilizes `OpenHPC`_ packages for installing: `Slurm`_, `MPI`_, `Lmod`_, etc.
+    - Written for team Norppa (`Finnish IT Center for Science, CSC`_) to utilize in
+      `Indy Student Cluster Competition 2023`_, where our team came second in the competition.
+    - `<https://github.com/MiroPalmu/kuutti>`_
 - Conway's Game of Life (C++ practice project)
     - `<https://github.com/MiroPalmu/gol>`_
 - This website
@@ -32,6 +38,13 @@ Projects
 .. _Breathe: https://breathe.readthedocs.io/en/latest/
 .. _Sphinx: https://www.sphinx-doc.org/en/master/
 .. _`Github pages`: https://pages.github.com/ 
+.. _`Ansible`: https://www.ansible.com/
+.. _`OpenHPC`: https://openhpc.community/
+.. _`Slurm`: https://slurm.schedmd.com/
+.. _`MPI`: https://en.wikipedia.org/wiki/Message_Passing_Interface
+.. _`Lmod`: https://lmod.readthedocs.io/en/latest/
+.. _`Finnish IT Center for Science, CSC`: https://www.csc.fi/
+.. _`Indy Student Cluster Competition 2023`: https://studentclustercompetition.us/2023/index.html
 
 .. .. toctree::
 ..    :maxdepth: 2
