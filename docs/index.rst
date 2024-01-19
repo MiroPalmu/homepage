@@ -14,6 +14,11 @@ Projects
     - Testing using UT_ (C++20 μ(micro)/Unit Testing Framework).
     - Automatic code documentation using Doxygen_.
     - User docs using Sphinx_ with Breathe_ pluging bridging cap to Doxygen documentation.
+- Awk.hpp
+    - Minimal awk implementation as proof of concept C++ library for
+      EDSL (embedded domain spesific langauge) implementation
+      technique called EDSL compilation which is heavily used in idg (project below).
+    - `<https://github.com/MiroPalmu/awk.hpp>`_
 - Compile time tensor index contraction library
     - WIP
     - `<https://github.com/MiroPalmu/idg>`_
