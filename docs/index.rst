@@ -9,22 +9,20 @@ Projects
 --------
 
 - C++ repository template for new projects
-    - `<https://github.com/MiroPalmu/meson-template>`_
     - Uses Meson_ build tool.
     - Testing using UT_ (C++20 μ(micro)/Unit Testing Framework).
     - Automatic code documentation using Doxygen_.
     - User docs using Sphinx_ with Breathe_ pluging bridging cap to Doxygen documentation.
+    - `<https://github.com/MiroPalmu/meson-template>`_
 - Awk.hpp
     - Minimal awk implementation as proof of concept C++ library for
       EDSL (embedded domain spesific langauge) implementation
       technique called EDSL compilation which is heavily used in idg (project below).
     - `<https://github.com/MiroPalmu/awk.hpp>`_
-- Compile time tensor index contraction library
-    - WIP
-    - `<https://github.com/MiroPalmu/idg>`_
+- IndexDiffGeom, idg (WIP)
+    - Compile time tensor index contraction C++ library
     - Write tensor contractions using Latex notation which will be check for correctness at compile time.
-    - Tensor contraction optimization algorithms will be run during compile time.
-        - ∴ Writing index contractions in Latex notation has **zero-overhead**!
+    - `<https://github.com/MiroPalmu/idg>`_
 - Kuutti
     - Custom HPC cluster provision tool for bare metal written as an `Ansible`_ role.
     - Utilizes `OpenHPC`_ packages for installing: `Slurm`_, `MPI`_, `Lmod`_, etc.
