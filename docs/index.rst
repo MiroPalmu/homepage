@@ -17,12 +17,12 @@ Projects
 - Awk.hpp
     - Minimal awk implementation as proof of concept C++ library for
       EDSL (embedded domain spesific langauge) implementation
-      technique called EDSL compilation which is heavily used in idg (project below).
+      technique called EDSL compilation which is heavily used in my other still WIP project.
     - `<https://github.com/MiroPalmu/awk.hpp>`_
-- IndexDiffGeom, idg (WIP)
-    - Compile time tensor index contraction C++ library
-    - Write tensor contractions using Latex notation which will be check for correctness at compile time.
-    - `<https://github.com/MiroPalmu/idg>`_
+.. - IndexDiffGeom, idg (WIP)
+..     - Compile time tensor index contraction C++ library
+..     - Write tensor contractions using Latex notation which will be check for correctness at compile time.
+..     - `<https://github.com/MiroPalmu/idg>`_
 - Kuutti
     - Custom HPC cluster provision tool for bare metal written as an `Ansible`_ role.
     - Utilizes `OpenHPC`_ packages for installing: `Slurm`_, `MPI`_, `Lmod`_, etc.
