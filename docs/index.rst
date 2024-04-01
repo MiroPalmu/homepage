@@ -15,7 +15,7 @@ Projects
 
 - C++ repository template for new projects
     - Uses Meson_ build tool.
-    - Testing using UT_ (C++20 μ(micro)/Unit Testing Framework).
+    - Testing using UT_ (C++20 Unit Testing Framework).
     - Automatic code documentation using Doxygen_.
     - User docs using Sphinx_ with Breathe_ pluging bridging cap to Doxygen documentation.
     - `<https://github.com/MiroPalmu/meson-template>`_
