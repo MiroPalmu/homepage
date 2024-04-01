@@ -5,6 +5,11 @@ Bio
 - email at miropalmu.cc
 - `github <https://github.com/MiroPalmu>`_
 
+Theoretical physics student interested in C++, HPC, compilers and systems programming.
+
+:download:`Here is my CV as downloadable pdf. <cv.pdf>`
+
+
 Projects
 --------
 
