@@ -9,6 +9,11 @@ Theoretical physics student interested in C++, HPC, compilers and systems progra
 
 :download:`Here is my CV as downloadable pdf. <cv.pdf>`
 
+Blog
+----
+
+.. postlist::
+   :tags: blog
 
 Projects
 --------
@@ -59,9 +64,3 @@ Projects
 ..    :caption: Contents:
 ..
 ..    developing_guidelines
-
-Blog
-----
-
-.. postlist::
-   :tags: blog
