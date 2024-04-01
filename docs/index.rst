@@ -34,8 +34,8 @@ Projects
     - Written for team Norppa (`Finnish IT Center for Science, CSC`_) to utilize in
       `Indy Student Cluster Competition 2023`_, where our team came second in the competition.
     - `<https://github.com/MiroPalmu/kuutti>`_
-- Conway's Game of Life (C++ practice project)
-    - `<https://github.com/MiroPalmu/gol>`_
+.. - Conway's Game of Life (C++ practice project)
+..     - `<https://github.com/MiroPalmu/gol>`_
 - This website
     - Automatic Sphinx_ debloyment to `Github pages`_.
     - `<https://github.com/MiroPalmu/homepage>`_
