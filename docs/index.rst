@@ -18,6 +18,10 @@ Blog
 Projects
 --------
 
+- Guilander
+    - Dependency free C++26 Wayland client library.
+    - Greenfield design implemented from ground up.
+    - `<https://github.com/MiroPalmu/guilander>`_
 - C++ repository template for new projects
     - Uses Meson_ build tool.
     - Testing using UT_ (C++20 Unit Testing Framework).
