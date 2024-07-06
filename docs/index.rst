@@ -22,32 +22,32 @@ Projects
     - Dependency free C++26 Wayland client library.
     - Greenfield design implemented from ground up.
     - `<https://github.com/MiroPalmu/guilander>`_
-- C++ repository template for new projects
-    - Uses Meson_ build tool.
-    - Testing using UT_ (C++20 Unit Testing Framework).
-    - Automatic code documentation using Doxygen_.
-    - User docs using Sphinx_ with Breathe_ pluging bridging cap to Doxygen documentation.
-    - `<https://github.com/MiroPalmu/meson-template>`_
-- Awk.hpp
-    - Minimal awk implementation as proof of concept C++ library for
-      EDSL (embedded domain spesific langauge) implementation
-      technique called EDSL compilation which is heavily used in my other still WIP project.
-    - `<https://github.com/MiroPalmu/awk.hpp>`_
-.. - IndexDiffGeom, idg (WIP)
-..     - Compile time tensor index contraction C++ library
-..     - Write tensor contractions using Latex notation which will be check for correctness at compile time.
-..     - `<https://github.com/MiroPalmu/idg>`_
 - Kuutti
     - Custom HPC cluster provision tool for bare metal written as an `Ansible`_ role.
     - Utilizes `OpenHPC`_ packages for installing: `Slurm`_, `MPI`_, `Lmod`_, etc.
     - Written for team Norppa (`Finnish IT Center for Science, CSC`_) to utilize in
       `Indy Student Cluster Competition 2023`_, where our team came second in the competition.
     - `<https://github.com/MiroPalmu/kuutti>`_
-.. - Conway's Game of Life (C++ practice project)
-..     - `<https://github.com/MiroPalmu/gol>`_
+- Awk.hpp
+    - Minimal awk implementation as proof of concept C++ library for
+      EDSL (embedded domain spesific langauge) implementation
+      technique called EDSL compilation which is heavily used in my other still WIP project.
+    - `<https://github.com/MiroPalmu/awk.hpp>`_
+- C++ repository template for new projects
+    - Uses Meson_ build tool.
+    - Testing using UT_ (C++20 Unit Testing Framework).
+    - Automatic code documentation using Doxygen_.
+    - User docs using Sphinx_ with Breathe_ pluging bridging cap to Doxygen documentation.
+    - `<https://github.com/MiroPalmu/meson-template>`_
 - This website
     - Automatic Sphinx_ debloyment to `Github pages`_.
     - `<https://github.com/MiroPalmu/homepage>`_
+.. - IndexDiffGeom, idg (WIP)
+..     - Compile time tensor index contraction C++ library
+..     - Write tensor contractions using Latex notation which will be check for correctness at compile time.
+..     - `<https://github.com/MiroPalmu/idg>`_
+.. - Conway's Game of Life (C++ practice project)
+..     - `<https://github.com/MiroPalmu/gol>`_
 
 .. _Meson: https://mesonbuild.com/
 .. _UT: https://github.com/boost-ext/ut
