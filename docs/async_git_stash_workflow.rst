@@ -100,8 +100,9 @@ the async git-stash workflow.
     magic refactor "Make memory out of pages directly removing reduntant book."
     magic test # Passes but takes a while.
 
+    git add *
     git commit -m "refactor: use pages directly from memory"
-    git log --oneline HEAD~5..HEAD
+    git log --oneline HEAD~6..HEAD
 
     # bc9a81d (HEAD -> main) refactor: use pages directly from memory
     # 9652c97 feat: Deep Thought
