@@ -6,6 +6,8 @@
 Async git-stash workflow enables test test-driven development
 -------------------------------------------------------------
 
+Edit: some comments about this post at `Hacker News <https://news.ycombinator.com/item?id=40972488>`_.
+
 This blog post is showcase of a workflow aimed for developing
 systems and its consisting components following test-driven development.
 
