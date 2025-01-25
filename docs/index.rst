@@ -18,9 +18,17 @@ Blog
 Projects
 --------
 
+- Gnulander
+    - A library to interface with GNU system using bleeding edge C++.
+    - Wraps low-level functionality into C++ abstractions in order to
+      increase expressibility and reuse of code, which require a high attention to detail.
+    - `<https://github.com/MiroPalmu/gnulander>`_
+- Waylander
+    - Implementation of Wayland client side communicatio in C++26.
+    - Greenfield design implemented from ground up (no dependency on libwayland).
+    - `<https://github.com/MiroPalmu/waylander>`_
 - Guilander
-    - Dependency free C++26 Wayland client library.
-    - Greenfield design implemented from ground up.
+    - A free and minimal Wayland GUI library currently under construction.
     - `<https://github.com/MiroPalmu/guilander>`_
 - Kuutti
     - Custom HPC cluster provision tool for bare metal written as an `Ansible`_ role.
