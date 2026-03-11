@@ -5,7 +5,8 @@ Bio
 - email at miropalmu.cc
 - `github <https://github.com/MiroPalmu>`_
 
-Theoretical physics student interested in C++, HPC, compilers and systems programming.
+PhD student focusing on numerical studies of astrophysical plasmas at University of Helsinki.
+My interests include C++, HPC, compilers and systems programming.
 
 :download:`Here is my CV as downloadable pdf. <cv.pdf>`
 
