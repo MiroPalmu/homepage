@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>DSL function objects (C++) &#8212; Miro Palmu&#39;s homepage</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+   
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+             <section id="dsl-function-objects-c">
+<h1>DSL function objects (C++)<a class="headerlink" href="#dsl-function-objects-c" title="Link to this heading">¶</a></h1>
+<p>In this blog post I’m going to describe metaprogramming technique that arose when
+I was working on my WIP library. I have not seen it before so I coined the term
+DSL (Domain Spesific Language) function object.</p>
+<p>DSL function object is function object which is created using some sort of DSL.
+UDLs (User-Defined Literal) can return DSL function object which has variadic tempalated arguments which are
+constrainted using a concept which models which combination of arguments is accepted
+based on the DSL in the UDL string.</p>
+<p>Due to usage of template constraints DSL function objects require C++20. I have a feeling that
+all this could be emulated using some dark sorcery of earlier standards but I have not thought
+of it enough.</p>
+<p>For example we define simple language which just controls which argument types are
+accepted. Rules for this langauge:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>only allowed characters ‘A’, ‘B’ and ‘C’.</p></li>
+<li><p>parameter to the DSL function object can only be of type A, B or C (defined in code)</p></li>
+<li><p>parameters have to be given in order defined by the given characters</p></li>
+</ul>
+</div></blockquote>
+<p>Then the DSL function object will print values inside these parameters
+with name provided by <code class="docutils literal notranslate"><span class="pre">std::type_info::name()</span></code>.
+UDL for this DSL function object is <code class="docutils literal notranslate"><span class="pre">&quot;&quot;_p</span></code>. Example usage <code class="docutils literal notranslate"><span class="pre">&quot;ABBCCC&quot;_p(A{1},</span> <span class="pre">B{2},</span> <span class="pre">B{3},</span> <span class="pre">C{4},</span> <span class="pre">C{5},</span> <span class="pre">C{6});</span></code>
+which would give following output on gcc 10.1 (interestingly gcc adds ‘1’ to the names):</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">1A is 0</span>
+<span class="go">1B is 2</span>
+<span class="go">1B is 3</span>
+<span class="go">1C is 4</span>
+<span class="go">1C is 5</span>
+<span class="go">1C is 6</span>
+</pre></div>
+</div>
+<p>One could imagine doing anything you can with these arguments and the logic why some combination
+of argument could be as complex as one desires.</p>
+<p>Below is the code implementing DSL function object described above. It compiles with gcc 10.1
+and clang 12.0.0 or newer (except clang 12.0.1) in C++20 mode. For some reason msvc does
+not compile on any version. Here is the implementation in <a class="reference external" href="https://godbolt.org/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1DIApACYAQuYukl9ZATwDKjdAGFUtAK4sGe1wAyeAyYAHI%2BAEaYxBIAzFykAA6oCoRODB7evnrJqY4CQSHhLFExXPG2mPb5DEIETMQEmT5%2BCXaYDul1DQSFYZHRegr1jc3ZbSO9wf0lg1wAlLaoXsTI7BzmscHI3lgA1CaxbmgMa4kECofYJhoAgpvbu5gHRwQAnomYAPoExEyEl1i1zuD1OTxebi8jlohDeVxu9zMWzBXn2hzcBC8iXo8JBSMeqOe6Pen2C/FxiORO0JEIafzhQIRoOpaKOfyMmEBwMpBNZbicw2ImFYFOZ4PRguCwFF%2BJRfOGWFUZwIMqp4qOYmAJEICBYqt5RKOkqMXwAbnhMAB3UV3AD0tr2ABEhAE9lQvKcantUBFtB0CHs8Ao3R7OgJvb7/XtLQg8MgEIHg8ghUwCJh0HsvKkjHsFKg2LmSAHUFQnS6AHQI%2B17OSOgJJwx7IWY4gMMuu92e9IRv0OaOx%2BN7BBMYOmhp4Jj4ZB7NMsRJiNMZhrAHyMC79uMJhqYKsOk6C/6CdOZ7PAPZMPYnZUbwcsDBVYMxzeX/MRYKp7sl8/EFdsQTBoNz2QZV013PYIhHY9wwIBBnmdV1ghnWCazrXNfilSs7VtMCADESHPPZMFUVhsTgl1o2eLAaBCXM8Dneg9gMIwvCYYBnifQdtCzAMTl%2BTxHwHLcf1XQQZw%2BTlvx3LCgJA9Byz2AAlLx6GDfhiCQwCmOAJgvDYkAwL2Qy9gAWm9BhaDec9aFoVBLWPeMGiYBxomDbc9jADhbg80h3I4CwPPPBgMw8twPMw25qyMky9nnP42DTdSSQkogkLIjtQy9H1ex4xsBAs8Dni/W4fIsb11LcPYICiGzLXmAyjNM2LWEwBLg2HU1nhSqI9mAPAOrbRCSCwdSqOmDMIksmDnl6/rL2HP5nOIS4sLAgAVWC2ym9sQ1OQhwyyqNLToWgYuIYIAzHbwJOCVJ9impQYsc%2BKXMCjMFRAEAkq%2BMlUA%2B5g2AgeZwurWsO3wmDAPgnawzbA6%2B0A8wzERr5Enk7BiMSFgGKzVj2DA/GADYNBMImSeJ6TEduCwLDcWnkcSCB7gAdgsLgTCZx0SvZiwkY5rmWdidnOb2NxuckIWfNFlmAFYJZF7mCaFurYisCnSfV8mIuw6SAHUdTdTwaqlb0oUSKEQD2LhbkTPZNciqKHcdp2uFKwCkekp3Pc9l2bcFj2vYDoyuAqwDxf9wOA%2BDm3ZfDiPvZD4NFZW6SAHkaLQZSMzo1jpj2dBUGNww3ghnM3mWS9GyOmDUoe5cRPXQwMy2mzeunGNLLzAs0BKd8ajAr867/HjllocbnhHF96KI89gwEdjDAuYHta1p0vE61AT1x71S1nbFU2efdfkPdcoc7GGe39YMhQARy8PAhUvaxrDMDR5IASSHJgOoIqhMCqY2YKpjAmIE6EMkwjzHoRFgyl94ZizMbTulEGgAGtCyrGiJZL8wpiAwmiGhRuDR0DBgiFCPYH92rPAYKgAMMFljAAQCqaSX5CCESobpBA4UwJvzbBeahsF1JMESNiOMH4BDBnugfCBBVAqYKmolcSChwqCi8H2a23NAyiUuocUqQttEImUX2HRLMNEXTENog4HM9F3AMQGCq6jzp7C0SrCxjorH3GkooY8KUsBULTKlXMLVt4xRSKkCIDFB5rkUQiXeBg/HEnEv9Z4q0KRXkwOcb8v41xfCUAGQ4jo0LoA%2BgoZqXwRzolWj5e4QIyoFKKSUspRwKl7CsNU/C70QDFLYKUwEbgmmi0ZCrJkIJpLrUAhnUe0ii5oWIColsYgxKfBvAmUQbZuqHxmc5DMVBiD5n8VDY00prG/FmW6PAqh0zZPQjmbmCIorDA/NOQ%2BRFEjqXaakAAXt8AMLAmCqC%2BPQIw1dDJ5MthoYmgy7h3IIIUkAdImAMmOPNHyPy/kAuANXawlsrh51TEwL4Lx8k3Msc46stxrKWnheAwQh5gwMGUidVM/jXBDOtkZEw0srAcqofgBQohiDoHZa46W%2BTnkwmQCwp5qgXmnPOegS5Z0jAQEPrUjpVzgBmgtJaDRZsCDzAsarVljs8ClggMEHV5YPmYEBi8bAewUX/MYOihAdVIWBxgjsrV7SW5xi%2BNEHZxAICIxoLK%2BVxsUUV3nOK94hElR/ywOgMAYBEbKwNbcp27T2RsQUB9NAiQ3imoYDqny6BcVfHLCW%2BogMU1puBZY4ZhqZyYHovvCU0Kil4E%2BT8PYoQKSexvnfIUCgIChAhCC%2B1aKYIuobeyzlFhuVBj5QK4VgqXwMGGM89SwaLkHKVWIni81KrmAJmaqEdUOU9uFVOz2Fst1yp3fcxwyAviiGGK2mFByNVWiuAWnV8w9VEtcfWqKM6Z3zt5YQwVK7JXSreWqz9nrTTWuVTc11jtmwrDbLBhV6rzRWggBWvF5Yoi9QYFWtxwG63M1cRC9xK8AioFbjODe8YOioONQs8eQUMn1zmo5RadrUzxnCjE/etJhJD2yYE5JjI7hPMuuBVAngOOlKCs%2B%2BaXwfkEHjLutd%2B6GiXn/SzGtgYTVvPqT0ppVTsBXqduh1sl4CUgo8l5DYNGooPmeOxiAZmukNN6VzIENm0MtQww5vJTm/IeXI0ZDzexqwAAkJ5dUKjvcS8tUMOzs22ac4XYj5JClFmjuj60ibTOiW9oacxCB8klRJ5Z6t7GUCkvdmB5MREUydJqLAFClKFM%2BkgQoHDWpQw26sb9SwToTF%2BA5r1zx3g9MWUsET/w23wFQX%2BQpRJ2T2MgqhWqJWNl8dItAxBBsEHClFLzQgLWIaBpa61iaQWWpLPV8sEBlB/qbCF%2BzVAxBKDccZkGD06JsHwPvfKwRTSoGQceAwJQS3Rn1sERUknb6MDWExnqgThxBQYilJKZC9j6Tyyqy1PxXuA4dBxBMU1suNm6vwUeXiGMtX4Yj6u1sUoseQGxpb1lHpxRai9JKwZNODi2g5BaCULtGSywcDlkGjRto6R2r5r2yHfvacjoiqO16nB3EcN%2BFPAv6uM1FOXEAvqNzUw0DTgmEDoia0CCA12FC3ZnW/QVerG57Fe9WjLQtvPK5%2BTD76QUddKDR/riUquXv1fe8ra4RmOb%2B6oyy6sp8MqfkjA4aJTa95xKOBVmbQgKQ2MvNxfMvXgDBhG1FUrho3DLYIJJ87DWnfcnN5gW%2B98JIQC6z17c/XTv%2BnRNVxrxvsBkYy1DvAGZUCfD%2BEQAN8x3vq4H/%2BgPRmMtGSgO0jOuSjjog43P/vT0FBA0ScNo/RwDhmDMDbRGo7b8D/LPJ9Ex/EbsrcAwZNPl1ep4UaAZp5FZ3AN7lZnLbpqoxovLNa6YbrnhQgbwL7RCpgkBf734ozWrGTYrICV4sDV49IbrYp16y7fZtjqK6JFbEqpp3AOI/LBDDbb4Nr77LCH79J2L35UxuD6TSw/5f5uZspcE0z0yMzcxsx8zNLcy8zCxSwWCCwp7RaGSsGkIf636UzUy0w8Hf6/735KF35mBUw0x0yYEMzMysxyxWAswyH8zyFyxyHiySFyGyxOEKxKz6GU57DrSciUQbxHbdyJB0B4wZbVgYFmBYHmESHCxWE8z2HcwKGOiAFGShH35uAWCIjhFmHiGWHSFxECzuGCGGQpGWAZERHZGSExE2Hyz5GKGFFxbLxRTFHcGiGVF5F2G1EGqNEOgaGiymGAwA6UYcCLC0CcDSy8B%2BAcBaCkC/QcC9FWCWCFgrAY6bA8CkAECaBDGLDIIgBmBcDlgvxMxMxcAaCSAEySAvxSBIj6CcCSDjEbHTGcC8DZoaBrEbGLBwCwAwCIAoD5iBH0BkAUC7pzhBExA7CGDABcAvwvE0C0CtSUARD3FvjMDEBvCcCrFIkNBvApw57rHcC8DdxDxpwWT3FYAkLABN7WTZp4mkBYA/JGDiCTG8D4BnZ9Scj3FEQdBQjrBTHnRVD3EwgRB/AokeBYD3HoQsBolDF8AGA14ABqmqKcnwExqx/AggIgYg7AUgMgggniag9xugCQWkKAT8lg%2BgeAEQ2akAiwC%2BNQVJxkCoeSpglgz8GgJkOsICbpfq%2BExkKcsQvAqAHUp2c%2BbJVplQ1Q6QLgQUYwrQpAgQ0wxQpQOQKQaQAg0ZSZeQ6QfQCZcwYZ/oXQkwaZbQVQeZAg3QjQWZAwZQtgBZngLQQwkwFZswZQiweYSxmpwxoxdxjJDxHAewqgAAHATMZGcZeFpJbGYOWK/K6RALgHtOpCsfMLwLiVoH%2BqQNsdLC8SMRwLcaQBKRuaQBMVMTMU8SAC8cuVKR8d8WwUWoCQESCaEM1JwAOUOSOcAMBJbLEPsbwOmHOXPnoKqcIKIOIFqQBbqeoN2QaaQJaH8IkJKR2RwGMQefcTMSnKbKQl%2BM%2BcOZIKOeCeOZOZOZVB4MCf8XfvEIua8YyaubBJOIMIDNcdubwHuS8Yef6Y8bYKeRRSuVsTsf2eWP2QAJzSzHEEyHH9kaBmCSCxAiX0V%2BlIXdnHmcUXlfGXkQBIB3n/HkCUDqWDAQkaAJAwlwlVSInvgomSmkAYkonYnZRmUElrhEmondmkm6QUm0BUmrG0ngkMlTHMl5kdRUlTEcl4Fpj3G8lblTEClClvAinclLlnQSl4mLBUAykKDylWiKmMBmUAXqnAXSCgVKB6kQU7H6DgnGnOmmkCmWl0U2npB2kOl5ZOnzE8yunGTun84tVenqQ%2BmyUBl%2BrBmVUtnFkwyRnuC1njCxlBSNmJkJC5ApkZCjUxkzU1CTU5ntAwxllNDzVDCDU1DrXLVVn3KjCbUTA9B7USAtnLDoJnX0WIUsU9l9mDlYU9TvnHHlhcCVSznL6kULBLlvHcWxCfn/WA1A3A30U7lMVyVHlsXPGKXvHKVIDXlQiaVAl/HRAPlsBPkPWvnvm8WIU/nL5/n6WyDZWam5WyBgX6lFXQWCJwXXVdmQ0cCoUEA6pBKYVY3TgvVvUQBEUo3zlIhmDkXnlUXCjDSUDwVg0gD7m3UKXQ2C3cVmAEzljnHlD8UaACVMwvz8UCWxAyV02sUcA/WUWkAqVw0/HEXRBI3aUxCmjIBCJmhcD8X/L7zDBfCqBnF8B0CGUIndkWUOXokmVYk4k2X5iEnmQOXeWYBkkuVuVMlNqeUxU0m96dB%2BXsnnJBXrCrGhX8nmmRXRVilxU01JWsQpUKlKmZVE1AUk3anyD5XgVTG6Da1GkNXWBmkWnwDWnnA1WcC2jvRN2WAvx7D%2BmBlnRYD9W5lDUQCuCFnjXoCnXTXJk1BT2LWZnxmVlbXhmlk1lZAxmrU7UNkr1Nn1k9BT0HVTBFCr0LBLBtlXVbk3XIWcB9kjndbW2OL23lixKcgBgzn4CfULkG1cVrk7HSyg2MUS3MV3363sVnlvFG0m0I0EAW2/H3mPkcCu3YVP3Timiv2xABXf3aiFKE1qkV0SCk06k10U3a1U2wUJW00Q162M3M0YWP1u4YOv3v3DCEWIMkWbCxAC2/WkDUUi10Vbni2S3gMnlQOUVy2fmSBMzSxMz8VcCDkaDSxnGxBANbmyVS1sWy30VmC609l/2bGkCBmpDOCSBAA%3D%3D">Godbold</a>.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;concepts&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;type_traits&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;utility&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;tuple&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;typeinfo&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;array&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;ranges&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;string&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdexcept&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;algorithm&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;string_view&gt;</span>
+
+<span class="c1">// In a other applications these could be any other types.</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">A</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">val</span><span class="p">;</span><span class="w"> </span><span class="p">};</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">B</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">val</span><span class="p">;</span><span class="w"> </span><span class="p">};</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">C</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">val</span><span class="p">;</span><span class="w"> </span><span class="p">};</span>
+
+<span class="c1">// Used to denote the set of possible arguments.</span>
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="k">concept</span><span class="w"> </span><span class="nc">argument_set</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">same_as</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">A</span><span class="o">&gt;</span><span class="w"> </span><span class="k">or</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">same_as</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">B</span><span class="o">&gt;</span><span class="w"> </span><span class="k">or</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">same_as</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">C</span><span class="o">&gt;</span><span class="p">;</span>
+
+
+<span class="c1">// This could be any structural type which can be constructed from the DSL string</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">fixed_string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">max_length</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">array</span><span class="o">&lt;</span><span class="kt">char</span><span class="p">,</span><span class="w"> </span><span class="n">max_length</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="o">&gt;</span><span class="w"> </span><span class="n">data_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{};</span><span class="w"> </span><span class="c1">// Allways contains null at the end</span>
+
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="k">explicit</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="n">fixed_string</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string_view</span><span class="w"> </span><span class="n">input</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">input</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">max_length</span><span class="p">)</span>
+<span class="w">            </span><span class="k">throw</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">logic_error</span><span class="p">(</span><span class="s">&quot;fixed_string max capacity exceeded!&quot;</span><span class="p">);</span>
+
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">ranges</span><span class="o">::</span><span class="n">copy</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="n">data_</span><span class="p">.</span><span class="n">data</span><span class="p">());</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">template</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">N</span><span class="o">&gt;</span>
+<span class="w">        </span><span class="k">requires</span><span class="p">(</span><span class="n">N</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">max_length</span><span class="p">)</span>
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="n">fixed_string</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">input</span><span class="p">)[</span><span class="n">N</span><span class="p">])</span>
+<span class="w">        </span><span class="o">:</span><span class="w"> </span><span class="n">fixed_string</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string_view</span><span class="o">&gt;</span><span class="p">(</span><span class="n">input</span><span class="p">))</span><span class="w"> </span><span class="p">{}</span>
+
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string_view</span><span class="w"> </span><span class="n">sv</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string_view</span><span class="p">(</span><span class="n">data_</span><span class="p">.</span><span class="n">begin</span><span class="p">());</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">};</span>
+
+<span class="c1">// Logic to check if type and argument character match.</span>
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="n">argument_set</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span>
+<span class="k">consteval</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">type_and_char_match</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">c</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">same_as</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">A</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="sc">&#39;A&#39;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">same_as</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">B</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="sc">&#39;B&#39;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="c1">// Has to be of type C</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="sc">&#39;C&#39;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">template</span><span class="o">&lt;</span><span class="n">fixed_string</span><span class="w"> </span><span class="n">S</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="p">...</span><span class="w"> </span><span class="n">P</span><span class="o">&gt;</span>
+<span class="k">consteval</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">params_are_correct</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// If length of string and amount of arguments is different we know it can not be correct.</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">S</span><span class="p">.</span><span class="n">sv</span><span class="p">().</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">sizeof</span><span class="p">...(</span><span class="n">P</span><span class="p">))</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Use immediately invoked lambda with index_sequence to get handle to type I := std::size_t...</span>
+<span class="w">    </span><span class="c1">// which then can be folded together with A to check if all parameters types match the character.</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">[]</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="p">...</span><span class="w"> </span><span class="n">I</span><span class="o">&gt;</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">index_sequence</span><span class="o">&lt;</span><span class="n">I</span><span class="p">...</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="p">(</span><span class="n">type_and_char_match</span><span class="o">&lt;</span><span class="n">P</span><span class="o">&gt;</span><span class="p">(</span><span class="n">S</span><span class="p">.</span><span class="n">sv</span><span class="p">()[</span><span class="n">I</span><span class="p">])</span><span class="w"> </span><span class="k">and</span><span class="w"> </span><span class="p">...);</span>
+<span class="w">    </span><span class="p">}(</span><span class="n">std</span><span class="o">::</span><span class="n">make_index_sequence</span><span class="o">&lt;</span><span class="k">sizeof</span><span class="p">...(</span><span class="n">P</span><span class="p">)</span><span class="o">&gt;</span><span class="p">{});</span>
+<span class="p">}</span>
+
+<span class="c1">// DSL function object</span>
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="n">fixed_string</span><span class="w"> </span><span class="n">S</span><span class="o">&gt;</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">custom_args</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="n">argument_set</span><span class="p">...</span><span class="w"> </span><span class="n">P</span><span class="o">&gt;</span>
+<span class="w">    </span><span class="k">requires</span><span class="w"> </span><span class="p">(</span><span class="n">params_are_correct</span><span class="o">&lt;</span><span class="n">S</span><span class="p">,</span><span class="w"> </span><span class="n">P</span><span class="p">...</span><span class="o">&gt;</span><span class="p">())</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="k">operator</span><span class="p">()(</span><span class="n">P</span><span class="p">...</span><span class="w"> </span><span class="n">params</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">       </span><span class="p">((</span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="k">typeid</span><span class="p">(</span><span class="n">params</span><span class="p">).</span><span class="n">name</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; is &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">params</span><span class="p">.</span><span class="n">val</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">),</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">};</span>
+
+<span class="k">template</span><span class="o">&lt;</span><span class="n">fixed_string</span><span class="w"> </span><span class="n">expr</span><span class="o">&gt;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="k">operator</span><span class="s">&quot;&quot;</span><span class="n">_p</span><span class="p">()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">custom_args</span><span class="o">&lt;</span><span class="n">expr</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">};</span>
+<span class="p">};</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;ABC:</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="s">&quot;ABC&quot;</span><span class="n">_p</span><span class="p">(</span><span class="n">A</span><span class="p">{</span><span class="mi">1</span><span class="p">},</span><span class="w"> </span><span class="n">B</span><span class="p">{</span><span class="mi">2</span><span class="p">},</span><span class="w"> </span><span class="n">C</span><span class="p">{</span><span class="mi">3</span><span class="p">});</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;ABBCCC:</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="s">&quot;ABBCCC&quot;</span><span class="n">_p</span><span class="p">(</span><span class="n">A</span><span class="p">{</span><span class="mi">1</span><span class="p">},</span><span class="w"> </span><span class="n">B</span><span class="p">{</span><span class="mi">2</span><span class="p">},</span><span class="w"> </span><span class="n">B</span><span class="p">{</span><span class="mi">3</span><span class="p">},</span><span class="w"> </span><span class="n">C</span><span class="p">{</span><span class="mi">4</span><span class="p">},</span><span class="w"> </span><span class="n">C</span><span class="p">{</span><span class="mi">5</span><span class="p">},</span><span class="w"> </span><span class="n">C</span><span class="p">{</span><span class="mi">6</span><span class="p">});</span>
+
+<span class="w">    </span><span class="c1">// These do not compile:</span>
+<span class="w">    </span><span class="c1">// &quot;&quot;_p(A{1}, B{2}, C{3});</span>
+<span class="w">    </span><span class="c1">// &quot;CBA&quot;_p(A{1}, B{2}, C{3});</span>
+<span class="w">    </span><span class="c1">// &quot;BA&quot;_p(A{1}, B{2}, C{3});</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">// &quot;ABC&quot;_p(B{2}, C{3});</span>
+<span class="w">    </span><span class="c1">// &quot;ABC&quot;_p();</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+
+<div class="section ablog__blog_comments">
+     
+<div class="section ablog__prev-next">
+  <span class="ablog__prev">
+    
+  </span>
+  <span class="ablog__spacer">&nbsp;</span>
+  <span class="ablog__next">
+      Next: 
+    <a href="lakos_rule_visualized.html">
+      <span>Demystifying Lakos Rule via Visualization and How It Could Relate to Constexpr</span>
+      
+    </a>
+    
+  </span>
+</div>
+  
+</div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">homepage</a></h1>
+
+
+
+
+
+
+
+
+
+<div class="ablog-sidebar-item ablog__postcard">
+   
+  <h2>
+     
+    <span>14.01.2024</span>
+    
+  </h2>
+  <ul>
+    <div class="ablog-sidebar-item ablog__postcard2">
+   
+  <li id="ablog-sidebar-item author ablog__author">
+    <span>
+       Author: 
+    </span>
+     
+    <a href="blog/author/miro-palmu.html">Miro Palmu</a>
+      
+  </li>
+      
+  <li id="ablog-sidebar-item tags ablog__tags">
+    <span>
+        Tags:  
+    </span>
+     
+    <a href="blog/tag/blog.html">blog</a>
+        
+    <a href="blog/tag/c.html">C++</a>
+        
+    <a href="blog/tag/c20.html">C++20</a>
+        
+    <a href="blog/tag/dsl.html">DSL</a>
+        
+    <a href="blog/tag/metaprogramming.html">metaprogramming</a>
+      
+  </li>
+   
+</div>
+  </ul>
+</div>
+
+<div class="ablog-sidebar-item ablog__tagcloud">
+  <link
+    rel="stylesheet"
+    href="_static/ablog/tagcloud.css"
+    type="text/css"
+  />
+  <h3><a href="blog/tag.html">Tags</a></h3>
+  <ul class="ablog-cloud">
+     
+    <li class="ablog-cloud ablog-cloud-2">
+      <a href="blog/tag/c.html">C++</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/c20.html">C++20</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/dsl.html">DSL</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-2">
+      <a href="blog/tag/bash.html">bash</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-5">
+      <a href="blog/tag/blog.html">blog</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/consteval.html">consteval</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/constexpr.html">constexpr</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/desing.html">desing</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/git.html">git</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/git-stash.html">git-stash</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/metaprogramming.html">metaprogramming</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/noexcept.html">noexcept</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/noglob.html">noglob</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/pipe.html">pipe</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/principle.html">principle</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/scripting.html">scripting</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-2">
+      <a href="blog/tag/shell.html">shell</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/tools.html">tools</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/utility.html">utility</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/workflow.html">workflow</a>
+    </li>
+     
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Miro Palmu.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/dsl_function_objects.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Demystifying Lakos Rule via Visualization and How It Could Relate to Constexpr &#8212; Miro Palmu&#39;s homepage</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+   
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+             <section id="demystifying-lakos-rule-via-visualization-and-how-it-could-relate-to-constexpr">
+<h1>Demystifying Lakos Rule via Visualization and How It Could Relate to Constexpr<a class="headerlink" href="#demystifying-lakos-rule-via-visualization-and-how-it-could-relate-to-constexpr" title="Link to this heading">¶</a></h1>
+<p>If you have been interested in C++ standard committee works,
+you have probably come contact with Lakos rule (named after John Lakos).
+It is a C++ function API design principle related to noexcept,
+which is especially relevant in C++ standard library.
+With <a class="reference external" href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2900r2.pdf">language support for contracts</a> on its way hopefully in C++26,
+the Lakos rule has proven its relevance once again.
+For more info on contracts and Lakos rule see papers <a class="reference external" href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2831r0.pdf">P2831</a> and <a class="reference external" href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2861r0.pdf">P2861</a> .</p>
+<p>Lakos rule has been explained in numerous papers and conference talks
+(see references of the above two papers or consult your favorite search engine).
+However the explanations that I have come across focus on practical examples and
+how Lakos rule comes into play.
+This might be a preferable explanation format for many people but
+in this blog post I will try to argue for Lakos rule in more abstract and visual way.
+In the end, I will attempt to argue how arguments presented in this blog post for
+Lakos rule, applies for constexpr as well.
+As a disclaimer things on this post are how I have interpreted them as a C++ enthusiast.
+They might be incorrect or partial truths. I’m always happy to hear if you think that I’m wrong.</p>
+<section id="lakos-rule">
+<h2>Lakos rule<a class="headerlink" href="#lakos-rule" title="Link to this heading">¶</a></h2>
+<p>In essence Lakos rule is with some caveats:</p>
+<blockquote>
+<div><p>Narrow contracts and noexcept are inherently incompatible.</p>
+</div></blockquote>
+<p>To unpack this, first we need some definitions.
+First let’s assume that we have a function <span class="math notranslate nohighlight">\(f\)</span>,
+which can take arguments from some set <span class="math notranslate nohighlight">\(A\)</span>.
+We can represent set <span class="math notranslate nohighlight">\(A\)</span> as <a class="reference external" href="https://en.wikipedia.org/wiki/Venn_diagram">Venn diagram</a>:</p>
+<img alt="_images/lakos_diagram-1.svg" src="_images/lakos_diagram-1.svg" />
+<p>Now, when we talk about having contracts on the arguments of <span class="math notranslate nohighlight">\(f\)</span>,
+it means that some elements in <span class="math notranslate nohighlight">\(A\)</span> are not valid inputs for <span class="math notranslate nohighlight">\(f\)</span>,
+even if <span class="math notranslate nohighlight">\(f\)</span> can technically accept them.
+Passing them to <span class="math notranslate nohighlight">\(f\)</span> would result in some form of undefined behavior.
+Let’s call subset of <span class="math notranslate nohighlight">\(A\)</span> which are valid input to <span class="math notranslate nohighlight">\(f\)</span> a set <span class="math notranslate nohighlight">\(B\)</span> and
+color elements of <span class="math notranslate nohighlight">\(B\)</span> with green and assume that every other element of <span class="math notranslate nohighlight">\(A\)</span> is non-valid.</p>
+<img alt="_images/lakos_diagram-2.svg" src="_images/lakos_diagram-2.svg" />
+<p>If <span class="math notranslate nohighlight">\(A = B\)</span> i.e. every element of <span class="math notranslate nohighlight">\(A\)</span> is valid input,
+it is said that <span class="math notranslate nohighlight">\(f\)</span> has wide contract.
+Conversely if <span class="math notranslate nohighlight">\(A \not = B\)</span>, it is said that <span class="math notranslate nohighlight">\(f\)</span> has narrow contract.</p>
+<img alt="_images/lakos_diagram-3.svg" src="_images/lakos_diagram-3.svg" />
+<p>Now let’s say that author of function <span class="math notranslate nohighlight">\(f\)</span> belives that it will never throw
+when called with elements from the valid subset <span class="math notranslate nohighlight">\(B\)</span> and thus
+sets <span class="math notranslate nohighlight">\(f\)</span> to be noexcpet.
+Calling <span class="math notranslate nohighlight">\(f\)</span> with elements not in <span class="math notranslate nohighlight">\(B\)</span> would lead to undefined behavior anyway.
+Let’s denote all the elements of <span class="math notranslate nohighlight">\(A\)</span> which would result in crash
+if exception is raised in <span class="math notranslate nohighlight">\(f\)</span> with hatch pattern.
+This might seem silly because every call of <span class="math notranslate nohighlight">\(f\)</span>
+with any element in <span class="math notranslate nohighlight">\(A\)</span> is a noexcept call,
+and the arguments do not change the noexcept-ness of <span class="math notranslate nohighlight">\(f\)</span>.
+However, this is, in fact, the essence of why the Lakos rule is relevant.</p>
+<img alt="_images/lakos_diagram-4.svg" src="_images/lakos_diagram-4.svg" />
+<p>Now, the author of <span class="math notranslate nohighlight">\(f\)</span> writes some tests for it.
+Each test takes an element from <span class="math notranslate nohighlight">\(A\)</span>, calls <span class="math notranslate nohighlight">\(f\)</span> with it,
+and checks if the result is correct.
+We can denote these tested elements of <span class="math notranslate nohighlight">\(A\)</span> with crosses.</p>
+<img alt="_images/lakos_diagram-5.svg" src="_images/lakos_diagram-5.svg" />
+<p>We notice that elements that are not in set <span class="math notranslate nohighlight">\(B\)</span> can not be tested,
+because it would lead to undefined behavior.
+However, the author of <span class="math notranslate nohighlight">\(f\)</span> wants to ensure that <span class="math notranslate nohighlight">\(f\)</span>
+is not called with elements outside of <span class="math notranslate nohighlight">\(B\)</span> and inserts assertion checks
+to detect elements that are not in <span class="math notranslate nohighlight">\(B\)</span>.
+Since assertions are new code, they should also be tested,
+so they need to somehow signal the calling test when an assertion failure occurs.</p>
+<img alt="_images/lakos_diagram-6.svg" src="_images/lakos_diagram-6.svg" />
+<p>Due to the noexcept “zone” extending beyond set <span class="math notranslate nohighlight">\(B\)</span>,
+the signal can not be thrown as an exception.
+The decision on noexcept has already been made because noexcept effects all elements in <span class="math notranslate nohighlight">\(A\)</span>.
+It can not be applied only to some subset of <span class="math notranslate nohighlight">\(A\)</span>.</p>
+<p>Ok, but what about removing the noexcept?
+In many cases, yes, this can be done,
+but we assume that in this case, it can not be taken away,
+because users of <span class="math notranslate nohighlight">\(f\)</span> already are relaying on noexcept nature of <span class="math notranslate nohighlight">\(f\)</span>.
+Remember that Lakos rule is most relevant in C++ standard library
+which one of the main features is backwards compatibility.</p>
+<p>It’s worth noting that the wide contract case does not have this problem
+because there is no preconditions to assert.
+Though, of course, if the author of <span class="math notranslate nohighlight">\(f\)</span> wants to assert some internal invariant,
+the same problem comes up.</p>
+<p>While there are some alternatives
+(such as setjmp/longjmp, child threads, “stackful coroutines” and
+most importantly death testing),
+none of them are as viable as exceptions,
+but the “bluntness” of noexcept made this form of contract checking impossible.
+For a comparison between different testing methods and why exceptions are superior,
+see Pablo Halpern’s and Timur Doumler’s <a class="reference external" href="https://www.youtube.com/watch?v=BS3Nr2I32XQ">excellent talk at CppCon 2023</a>.</p>
+<p>If we go back a little,
+there is another reason why noexcept is too much of a “blunt” tool
+for functions with a narrow contract.
+Let’s say once again that the author of <span class="math notranslate nohighlight">\(f\)</span> has chosen to make it noexcept.</p>
+<img alt="_images/lakos_diagram-7.svg" src="_images/lakos_diagram-7.svg" />
+<p>Now, time goes by, and the author gets a nice idea on how to make <span class="math notranslate nohighlight">\(f\)</span> more generic.
+It can now handle a subset <span class="math notranslate nohighlight">\(C\)</span> of <span class="math notranslate nohighlight">\(A\)</span>,
+which is a superset of <span class="math notranslate nohighlight">\(B\)</span>.
+For a wide contract, this is impossible because <span class="math notranslate nohighlight">\(B\)</span> cannot be made any larger than <span class="math notranslate nohighlight">\(A\)</span>.</p>
+<img alt="_images/lakos_diagram-8.svg" src="_images/lakos_diagram-8.svg" />
+<p>Once again, because the choice of noexcept has already been made,
+all new possible arguments in <span class="math notranslate nohighlight">\(C\)</span> are automatically noexcept.
+This limits the design and possible functionality that <span class="math notranslate nohighlight">\(f\)</span> can achieve
+with the new elements from <span class="math notranslate nohighlight">\(C\)</span>.
+This argument can even be made without the new set <span class="math notranslate nohighlight">\(C\)</span>.
+The author of <span class="math notranslate nohighlight">\(f\)</span> cannot make any enhancements to implementation of <span class="math notranslate nohighlight">\(f\)</span>
+that would involve exceptions.</p>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading">¶</a></h2>
+<p>Now getting back to Lakos rule, narrow contracts and noexcept are inherently incompatible,
+because narrow contract means that there is some arguments (in <span class="math notranslate nohighlight">\(A\)</span> but not in <span class="math notranslate nohighlight">\(B\)</span>)
+for which the functionality has not been decided,
+but noexcept limits functionality of all possible arguments.
+Noexcept can <strong>not</strong> be applied only to subset of <span class="math notranslate nohighlight">\(A\)</span>.
+In case of wide contracts the functionality of <span class="math notranslate nohighlight">\(f\)</span>
+has been decided for all possible arguments (<span class="math notranslate nohighlight">\(A = B\)</span>),
+so there is no new arguments which design space would be limited with noexcept.</p>
+</section>
+<section id="caveats">
+<h2>Caveats<a class="headerlink" href="#caveats" title="Link to this heading">¶</a></h2>
+<p>The caveats to Lakos rule arise in the form of special cases.
+To get a crasp on the nature of these cases, here is a list of requirements
+that such case needs to fulfill, proposed by John Lakos himself in <a class="reference external" href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2861r0.pdf">P2861</a>:</p>
+<ul class="simple">
+<li><p>The operation the function provides has an inherently narrow contract.</p></li>
+<li><p>A primary use case would be lost if it had a throwing specification.</p></li>
+<li><p>To disallow throwing in response to a contract violation is acceptable.</p></li>
+<li><p>No better design alternative is available (or foreseeable).</p></li>
+</ul>
+<p>I will not go in any more depth in this matter and leave more thorough explanataion
+to <a class="reference external" href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2861r0.pdf">P2861</a>. It is a paper which gives an excellent
+and comprehensive explanation of the Lakos rule.</p>
+</section>
+<section id="constexpr">
+<h2>Constexpr<a class="headerlink" href="#constexpr" title="Link to this heading">¶</a></h2>
+<p>I will end this blog post attempting to argue why arguments of Lakos rule
+have implications for constexpr as well.
+Lets call the set of possible “call times” a set <span class="math notranslate nohighlight">\(T\)</span>,
+which contains only two elements: run time and compile time (constant-evaluation).
+Then lets define set of possible “call times” for function <span class="math notranslate nohighlight">\(f\)</span> a set <span class="math notranslate nohighlight">\(T_f\)</span>.</p>
+<p>For function <span class="math notranslate nohighlight">\(f\)</span> without constexpr or consteval specifier
+<span class="math notranslate nohighlight">\(T_f = \{\text{run time}\}\)</span>. In some cases function <span class="math notranslate nohighlight">\(f\)</span> with constexpr specifier
+can not ever be executed during compile time, because it uses some non-constant-evaluatable
+functionality, and for these <span class="math notranslate nohighlight">\(T_f = \{\text{run time}\}\)</span> as well.
+I will not be exact what non-constant-evaluatable functionality is
+because it is changing from one version of the standard to next.</p>
+<p>For functions <span class="math notranslate nohighlight">\(f\)</span> with constexpr specifier and
+which only uses constant-evaluatable functionality,
+<span class="math notranslate nohighlight">\(T_f = \{\text{run time}, \text{compile time}\}\)</span>.
+Lastly for function <span class="math notranslate nohighlight">\(f\)</span> which has consteval specifier,
+<span class="math notranslate nohighlight">\(T_f = \{\text{compile time}\}\)</span>. <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
+<p>The argument presented in this blog post for Lakos rule was that
+noexcept should not be applied to functions with narrow contracts
+because it limits the potential functionality for all arguments,
+even for those for which the functionality has yet not been decided.
+Now, with a similar argument,
+one can argue that constexpr should be applied to every function
+and only constant-evaluatable functionality should be used in them,
+for these functions <span class="math notranslate nohighlight">\(T_f = T\)</span>.
+This is the only way that does not impose any restrictions on
+potential functionality of the function.</p>
+<p>I believe this is a valid argument, albeit weaker than Lakos rule.
+The significance of Lakos rule lies in the difficulty of removing noexcept once applied.
+However, for functions with <span class="math notranslate nohighlight">\(T_f \not = T\)</span>, it is relatively easy to add constexpr
+or change consteval to constexpr.
+What is not easy to change is use of non-constant-evaluatable functionality
+which prevent constexpr functions to be executed during compile time.
+Additionally, there is also complications involving SFINAE,
+as it can be used to choose overload based on whether a function is constant-evaluatable,
+potentially altering the meaning of other code when adding constexpr.
+See <a class="reference external" href="https://stackoverflow.com/a/32398825">this answer on Stack Overflow</a> for an exapmle.
+Even the <a class="reference external" href="https://eel.is/c++draft/constexpr.functions">C++ standard</a> prohibits implementers of standard library from adding constexpr
+where it is not explicitly required by the standard.
+See <a class="reference external" href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3788.html#2013">N3788</a> for more detail.</p>
+<p>Of course, similar to Lakos rule, there are exceptions for constexpr.
+If the functionality of a function inherently belongs to constant-evaluation
+(e.g., reflection functions proposed in <a class="reference external" href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2996r0.html">P2996</a>),
+it is more self-documenting code to specify those functions as consteval.
+Conversely, if the functionality of a function inherently belongs to runtime
+or is impossible to implement with only constant-evaluatable functions
+(e.g., I/O functions), it should not have a constexpr specifier.
+Also all constant-evaluatable functions have to be in a header.
+Increased compilation times can be a significant drawback and deal-breaker for many,
+but let’s hope that C++ modules will bring salvation.</p>
+<p>This brings the end of this blog post.
+Thank you for reading this far! Feedback is always appreciated.</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id2" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>For functions which are ill-formed, <span class="math notranslate nohighlight">\(T_f = \emptyset\)</span> (empty set).</p>
+</aside>
+</aside>
+</section>
+</section>
+
+<div class="section ablog__blog_comments">
+     
+<div class="section ablog__prev-next">
+  <span class="ablog__prev">
+      Previous:
+    
+    <a href="dsl_function_objects.html">
+      
+      <span>DSL function objects (C++)</span>
+    </a>
+    
+  </span>
+  <span class="ablog__spacer">&nbsp;</span>
+  <span class="ablog__next">
+      Next: 
+    <a href="bash_noglob_for_alias.html">
+      <span>Journey of disabling filename expansion for Bash alias</span>
+      
+    </a>
+    
+  </span>
+</div>
+  
+</div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">homepage</a></h1>
+
+
+
+
+
+
+
+
+
+<div class="ablog-sidebar-item ablog__postcard">
+   
+  <h2>
+     
+    <span>03.02.2024</span>
+    
+  </h2>
+  <ul>
+    <div class="ablog-sidebar-item ablog__postcard2">
+   
+  <li id="ablog-sidebar-item author ablog__author">
+    <span>
+       Author: 
+    </span>
+     
+    <a href="blog/author/miro-palmu.html">Miro Palmu</a>
+      
+  </li>
+      
+  <li id="ablog-sidebar-item tags ablog__tags">
+    <span>
+        Tags:  
+    </span>
+     
+    <a href="blog/tag/blog.html">blog</a>
+        
+    <a href="blog/tag/c.html">C++</a>
+        
+    <a href="blog/tag/desing.html">desing</a>
+        
+    <a href="blog/tag/principle.html">principle</a>
+        
+    <a href="blog/tag/noexcept.html">noexcept</a>
+        
+    <a href="blog/tag/constexpr.html">constexpr</a>
+        
+    <a href="blog/tag/consteval.html">consteval</a>
+      
+  </li>
+   
+</div>
+  </ul>
+</div>
+
+<div class="ablog-sidebar-item ablog__tagcloud">
+  <link
+    rel="stylesheet"
+    href="_static/ablog/tagcloud.css"
+    type="text/css"
+  />
+  <h3><a href="blog/tag.html">Tags</a></h3>
+  <ul class="ablog-cloud">
+     
+    <li class="ablog-cloud ablog-cloud-2">
+      <a href="blog/tag/c.html">C++</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/c20.html">C++20</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/dsl.html">DSL</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-2">
+      <a href="blog/tag/bash.html">bash</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-5">
+      <a href="blog/tag/blog.html">blog</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/consteval.html">consteval</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/constexpr.html">constexpr</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/desing.html">desing</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/git.html">git</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/git-stash.html">git-stash</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/metaprogramming.html">metaprogramming</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/noexcept.html">noexcept</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/noglob.html">noglob</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/pipe.html">pipe</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/principle.html">principle</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/scripting.html">scripting</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-2">
+      <a href="blog/tag/shell.html">shell</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/tools.html">tools</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/utility.html">utility</a>
+    </li>
+      
+    <li class="ablog-cloud ablog-cloud-1">
+      <a href="blog/tag/workflow.html">workflow</a>
+    </li>
+     
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Miro Palmu.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/lakos_rule_visualized.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
